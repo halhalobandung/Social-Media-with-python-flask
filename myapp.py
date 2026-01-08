@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, url_for
+from flask import Flask, render_template, request, redirect, session
 from flask_mysqldb import MySQL
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
@@ -16,16 +16,51 @@ mysql = MySQL(app)
 UPLOAD_FOLDER = 'static/uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+@app.route("/edit-profile", methods=["GET", "POST"])
+def edit_profile():
+    if "user_id" not in session:
+        return redirect("/login")
+    
+    uid = session["user_id"]
+    cur = mysql.connection.cursor()
+
+    if request.method == "POST":
+        name = request.form["name"]
+        bio = request.form["bio"]
+
+        photo = request.files["photo"]
+        filename = None
+
+        if photo and photo.filename != "":
+            filename = secure_filename(photo.filename)
+            photo.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+            cur.execute("""
+                UPDATE users SET name=%s, bio%s, photo%s WHERE id=%s
+            """, (name, bio, filename, uid))
+        else:
+            cur.execute("""
+                UPDATE users SET name=%s, bio=%s WHERE id=%s
+            """, (name, bio, uid))
+
+        mysql.connection.commit()
+        return redirect(f"/profile/{uid}")
+    
+    cur.execute("SELECT name, bio, photo FROM users WHERE id=%s", (uid,))
+    user = cur.fetchone()
+
+    return render_template("edit_profile.html", user=user)
+
 def format_mention(text):
     words = text.split()
     new = []
     for w in words:
-        if w.stratswith('@'):
+        if w.startswith('@'):
             uname = w[1:]
             new.append(f'<a href="/search/{uname}">@{uname}</a>')
         else:
             new.append(w)
-    return ''.join(new)
+    return ' '.join(new)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -54,7 +89,7 @@ def login():
             session['user_id'] = user[0]
             session['username'] = user[1]
             return redirect('/')
-        return render_template('login.html')
+    return render_template('login.html')
     
 @app.route('/logout')
 def logout():
@@ -70,8 +105,8 @@ def home():
 
     cur.execute("""
         SELECT posts.*, users.username,
-        (SELECT COUNT(*) FROM likes_post WHERE post_id = post.id) AS like_count,
-        (SELECT COUNT(*) FROM comments WHERE post_id = post.id) AS comment_count
+        (SELECT COUNT(*) FROM likes_post WHERE post_id = posts.id) AS like_count,
+        (SELECT COUNT(*) FROM comments WHERE post_id = posts.id) AS comment_count
         FROM posts 
         JOIN users ON posts.user_id = users.id
         ORDER BY posts.id DESC
@@ -93,7 +128,7 @@ def home():
 
     return render_template('home.html', posts=posts, comments=comments)
 
-@app.route('/post', method=['POST'])
+@app.route('/post', methods=['POST'])
 def post():
     file = request.files['file']
     caption = request.form['caption']
@@ -144,7 +179,7 @@ def like_comment(cid):
     )
     if not cur.fetchone():
         cur.execute(
-            "INSERT INTO likes_comment(post_id, user_id) VALUES(%s, %s)", 
+            "INSERT INTO likes_comment(comment_id, user_id) VALUES(%s, %s)", 
             (cid, session['user_id'])
         )
         mysql.connection.commit()
@@ -164,7 +199,7 @@ def delete_post(pid):
 def follow(user_id):
     cur = mysql.connection.cursor()
     cur.execute(
-        "SELECT id FROM follow WHERE follower_id=%s AND following_id=%s)", 
+        "SELECT id FROM follow WHERE follower_id=%s AND following_id=%s", 
         (session['user_id'], user_id)
     )
     if not cur.fetchone():
@@ -172,7 +207,7 @@ def follow(user_id):
             "INSERT INTO follow (follower_id, following_id) VALUES(%s, %s)", 
             (session['user_id'], user_id)
         )
-    mysql.connection.commit()
+        mysql.connection.commit()
     return redirect('/profile/' + str(user_id))
 
 @app.route('/profile/<int:uid>')
@@ -183,13 +218,13 @@ def profile(uid):
     user = cur.fetchone()
 
     cur.execute("SELECT COUNT(*) FROM follow WHERE following_id=%s", (uid,))
-    followers = cur.fetchone()
+    followers = cur.fetchone()[0]
 
     cur.execute("SELECT COUNT(*) FROM follow WHERE follower_id=%s", (uid,))
-    following = cur.fetchone()
+    following = cur.fetchone()[0]
     
-    cur.execute("SELECT * FROM users WHERE user_id=%s ORDER BY id DESC", (uid,))
-    posts = cur.fetchone()
+    cur.execute("SELECT * FROM posts WHERE user_id=%s ORDER BY id DESC", (uid,))
+    posts = cur.fetchall()
 
     return render_template(
         'profile.html',
@@ -198,25 +233,55 @@ def profile(uid):
 
 @app.route('/chat/<int:uid>', methods=['GET', 'POST'])
 def chat(uid):
+    if "user_id" not in session:
+        return redirect("/login")
+    
+    myid = session['user_id']
+    cur = mysql.connection.cursor()
+
     if request.method == 'POST':
         msg = request.form['message']
-        cur = mysql.connection.cursor()
         cur.execute(
             "INSERT INTO chat(sender_id, receiver_id, message) VALUES(%s, %s, %s)", 
-            (session['user_id'], uid, msg)
+            (myid, uid, msg)
         )
         mysql.connection.commit()
 
-        cur = mysql.connection.cursor()
-        cur.execute("""
-            SELECT * FROM chat 
-            WHERE (sender_id=%s AND receiver_id=%s) 
-               OR (sender_id=%s AND receiver_id=%s) 
-            ORDER BY id
-        """, (session['user_id'], uid, uid, session['user_id']))
-        chats = cur.fetchall()
+    cur.execute("""
+        SELECT sender_id, message 
+        FROM chat 
+        WHERE (sender_id=%s AND receiver_id=%s) 
+           OR (sender_id=%s AND receiver_id=%s) 
+        ORDER BY id
+    """, (myid, uid, uid, myid))
+    chats = cur.fetchall()
 
-        return render_template('chat.html', chats=chats, uid=uid)
+    cur.execute("SELECT username FROM users WHERE id=%s", (uid,))
+    user = cur.fetchone()
+
+    return render_template('chat.html', chats=chats, uid=uid, user=user)
+
+@app.route("/inbox")
+def inbox():
+    if "user_id" not in session:
+        return redirect("/login")
+    
+    myid = session["user_id"]
+    cur = mysql.connection.cursor()
+
+    cur.execute("""
+        SELECT u.id, u.username
+        FROM users u
+        JOIN chat c
+          ON (u.id = c.sender_id OR u.id = c.receiver_id)
+        WHERE %s IN (c.sender_id, c.receiver_id)
+          AND u.id != %s
+        GROUP BY u.id
+        ORDER BY MAX(c.id) DESC
+    """, (myid, myid))
+
+    users = cur.fetchall()
+    return render_template("inbox.html", users=users)
     
 
 if __name__ == '__main__':
