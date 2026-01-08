@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <h2>@{{ user[0] }}</h2>
+    <p>{{ followers }} followers | {{ dollowing }} following</p>
+
+    <a href="/follow/{{ uid }}">Follow</a>
+
+    <hr>
+
+    {% for p in posts %}
+        <div class="post">
+            <p>{{ p[2] }}</p>
+        </div>
+    {% endfor %}
+    
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="chat-box">
+        <h3>Direct Message</h3>
+        <div class="chat-area">
+            {% for c in chats %}
+                {% if c[1] == session['user_id'] %}
+                    <div class="me">{{% c[3] %}}</div>
+                {% else %}
+                    <div class="you">{{ c[3] }}</div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <form method="post">
+            <input name="message" placeholder="Ketik Pesan..." required>
+            <button type="submit">Kirim</button>
+        </form>
+
+    </div>
+    
+</body>
+</html>

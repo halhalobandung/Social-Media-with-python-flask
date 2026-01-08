@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <div class="navbar">
+        <h2>Mini X</h2>
+        <div>
+            <span>{{ session['username'] }}</span>
+            <a href="/logout">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="post-box">
+            <form action="/post" method="post" enctype="multipart/form-data">
+                <textarea name="caption" placeholder="Apa yang sedang kamu pikirkan?" required></textarea>
+
+                <select name="type" aria-label="Jenis Post">
+                    <option value="photo">Photo</option>
+                    <option value="video">Video</option>
+                </select>
+
+                <input type="file" name="file" placeholder="Komenta..." required>
+                <button type="submit">Post</button>
+            </form>
+        </div>
+
+        {% for p in posts %}
+        <div class="post">
+
+            <a href="/profile/{{ p[1] }}"><b>@{{ p[6] }}</b></a>
+            <p>{{ p[2]|safe }}</p>
+
+            {% if p[4] == 'photo' %}
+                <img src="{{ url_for('static', filename='uploads' + p[3]) }}" alt="Post by {{ p[6] }}">
+            {% else %}
+                <video controls aria-label="Post Video">
+                    <source src="{{ url_for('static', filename='uploads' + p[3]) }}">
+                </video>
+            {% endif %}
+
+            <p> {{ p[7] }} likes | {{ p[8] }} comments</p>
+
+            <div class="actions">
+                <a href="/like/{{ p[0] }}">Like</a>
+                <a href="/chat/{{ p[1] }}">DM</a>
+
+                {% if p[1] == session['user_id'] %}
+                    <a href="/delete_post/{{ p[0] }}">Delete</a>
+                {% endif %}
+            </div>
+
+            <form action="/comment/{{ p[0] }}" method="post" class="comment-box">
+                <input type="text" name="comment" placeholder="Komentar..." required>
+                <button type="submit">Kirim</button>
+            </form>
+            
+            <div class="comments">
+            {% for c in comments %}
+                {% if c[1] == p[0] %}
+                    <p>
+                        <b>@{{ c[4] }}</b>: {{ c[3] }}
+                        {{ c[6] }}
+                        <a href="/like_comment/{{ c[0] }}">Like</a>
+                    </p>
+                {% endif %}
+            {% endfor %}
+            </div>
+
+        </div>
+        {{% endfor %}}
+
+    </div>
+    
+</body>
+</html>
