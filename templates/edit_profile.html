@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="layout">
+        <div class="sidebar">
+            <h2><i class="fa-solid fa-feather"> MIni X</i></h2>
+
+            <a href="/"><i class="fa-solid fa-house"> Home</i></a>
+
+            <a href="/profile/{{ session['user_id'] }}">
+                <i class="fa-solid fa-user"></i> Profile
+            </a>
+
+            <a href="/inbox">
+                <i class="fa-regular fa-envelope"></i> Inbox
+            </a>
+
+            <a href="/logout">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </a>
+        </div>
+
+        <div class="main">
+            <div class="container">
+                <h2><i class="fa-solid fa-pen-to-square"> Edit Profile</i></h2>
+
+                <form method="post" enctype="multipart/form-data" class="post-box">
+                    <label>
+                        <i class="fa-solid fa-is-card"></i> Nama
+                    </label>
+                    <input type="text" name="name" value="{{ user[0] if user[0] else '' }}" placeholder="Nama kamu" required>
+                    <label>
+                        <i class="fa-solid fa-quote-left"></i> Bio
+                    </label>
+                    <textarea name="bio" placeholder="Bio singkat...">{{ user[1] if user[1] else '' }}</textarea>
+
+                    <label>
+                        <i class="fa-solid fa-image"> Foto Profile</i>
+                    </label>
+                    <input type="file" name="photo" aria-label="photo">
+                    <button type="submit">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+    
+
+<script src="https://kit.fontawesome.com/5fa5a7fb51.js" crossorigin="anonymous"></script>
+</body>
+</html>

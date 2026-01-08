@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat</title>
+    <title>Inbox</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="layout">
         <div class="sidebar">
             <h2>Mini X</h2>
-            
+
             <a href="/"><i class="fa-solid fa-house"> Home</i></a>
 
             <a href="/profile/{{ session['user_id'] }}">
@@ -27,33 +27,26 @@
         </div>
 
         <div class="main">
-            <div class="chat-header">
-                <b>@{{ user[0] }}</b>
-            </div>
+            <div class="container">
+                <h2>Inbox</h2>
 
-            <div class="chat-area" id="chatArea">
-                {% for c in chats %}
-                    {% if c[0] == session['user_id'] %}
-                        <div class="bubble me">{{ c[1] }}</div>
-                    {% else %}
-                        <div class="bubble you">{{ c[1] }}</div>
-                    {% endif %}
+            {% if users %}
+                {% for u in users %}
+                    <a href="/chat/{{ u[0] }}">
+                        <div class="inbox-item">
+                            <b>@{{ u[1] }}</b>
+                            <p>Klik untuk membuka chat</p>
+                        </div>
+                    </a>
                 {% endfor %}
+            {% else %}
+                    <p>Belum ada chat.</p>
+            {% endif %}
+
             </div>
-
-            <form method="post">
-                <input name="message" placeholder="Ketik Pesan..." required>
-                <button type="submit" aria-label="Kirim"><i class="fa-solid fa-paper-plane"></i></button>
-            </form>
-
         </div>
 
     </div>
-
-<script>
-    const chatArea = document.getElementById("chatArea");
-    chatArea.scrollTop = chatArea.scrollHeight
-</script>
 
 <script src="https://kit.fontawesome.com/5fa5a7fb51.js" crossorigin="anonymous"></script>
 </body>

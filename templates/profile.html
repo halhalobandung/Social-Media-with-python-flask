@@ -6,12 +6,25 @@
     <title>Profile</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
+<body class="container">
 
     <h2>@{{ user[0] }}</h2>
-    <p>{{ followers }} followers | {{ dollowing }} following</p>
+    <p>{{ followers }} followers | {{ following }} following</p>
 
-    <a href="/follow/{{ uid }}">Follow</a>
+    {% if user.photo %}
+        <img src="{{ url_for('static', filename='uploads/' + user.photo) }}" width="100" alt="">
+    {% endif %}
+
+    <h2>@{{ user.name or user.username }}</h2>
+    <p> {{ user.bio }}</p>
+
+    {% if user.id == session[user_id] %}
+        <a href="/edit_profile.html"> Edit Profile</a>
+    {% endif %}
+
+    {% if uid != session['user_id'] %}
+        <a href="/follow/{{ uid }}"><i class="fa-solid fa-user-plus"></i> Follow</a>
+    {% endif %}
 
     <hr>
 
@@ -21,5 +34,6 @@
         </div>
     {% endfor %}
     
+<script src="https://kit.fontawesome.com/5fa5a7fb51.js" crossorigin="anonymous"></script>
 </body>
 </html>

@@ -7,76 +7,109 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+    <div class="layout">
 
-    <div class="navbar">
-        <h2>Mini X</h2>
-        <div>
-            <span>{{ session['username'] }}</span>
-            <a href="/logout">Logout</a>
-        </div>
-    </div>
-
-    <div class="container">
-        <div class="post-box">
-            <form action="/post" method="post" enctype="multipart/form-data">
-                <textarea name="caption" placeholder="Apa yang sedang kamu pikirkan?" required></textarea>
-
-                <select name="type" aria-label="Jenis Post">
-                    <option value="photo">Photo</option>
-                    <option value="video">Video</option>
-                </select>
-
-                <input type="file" name="file" placeholder="Komenta..." required>
-                <button type="submit">Post</button>
-            </form>
-        </div>
-
-        {% for p in posts %}
-        <div class="post">
-
-            <a href="/profile/{{ p[1] }}"><b>@{{ p[6] }}</b></a>
-            <p>{{ p[2]|safe }}</p>
-
-            {% if p[4] == 'photo' %}
-                <img src="{{ url_for('static', filename='uploads' + p[3]) }}" alt="Post by {{ p[6] }}">
-            {% else %}
-                <video controls aria-label="Post Video">
-                    <source src="{{ url_for('static', filename='uploads' + p[3]) }}">
-                </video>
-            {% endif %}
-
-            <p> {{ p[7] }} likes | {{ p[8] }} comments</p>
-
-            <div class="actions">
-                <a href="/like/{{ p[0] }}">Like</a>
-                <a href="/chat/{{ p[1] }}">DM</a>
-
-                {% if p[1] == session['user_id'] %}
-                    <a href="/delete_post/{{ p[0] }}">Delete</a>
-                {% endif %}
-            </div>
-
-            <form action="/comment/{{ p[0] }}" method="post" class="comment-box">
-                <input type="text" name="comment" placeholder="Komentar..." required>
-                <button type="submit">Kirim</button>
-            </form>
+        <div class="sidebar">
+            <h2>Mini X</h2>
             
-            <div class="comments">
-            {% for c in comments %}
-                {% if c[1] == p[0] %}
-                    <p>
-                        <b>@{{ c[4] }}</b>: {{ c[3] }}
-                        {{ c[6] }}
-                        <a href="/like_comment/{{ c[0] }}">Like</a>
-                    </p>
-                {% endif %}
-            {% endfor %}
-            </div>
+            <a href="/"><i class="fa-solid fa-house"> Home</i></a>
 
+            <a href="/profile/{{ session['user_id'] }}">
+                <i class="fa-solid fa-user"></i> Profile
+            </a>
+
+            <a href="/inbox">
+                <i class="fa-regular fa-envelope"></i> Inbox
+            </a>
+
+            <a href="/logout">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </a>
         </div>
-        {{% endfor %}}
+
+        <div class="main">
+            <div class="container">
+                <div class="post-box box">
+                    <form action="/post" method="post" enctype="multipart/form-data">
+                        <textarea name="caption" placeholder="Apa yang sedang kamu pikirkan?" required></textarea>
+
+                        <select name="type" aria-label="Jenis Post">
+                            <option value="photo">Photo</option>
+                            <option value="video">Video</option>
+                        </select>
+
+                        <input type="file" name="file" aria-label="Upload file" required>
+                        <button type="submit">
+                            <i class="fa-solid fa-paper-plane"></i> Post
+                        </button>
+                    </form>
+                </div>
+
+                {% for p in posts %}
+                <div class="post">
+
+                    <a href="/profile/{{ p[1] }}"><b>@{{ p[6] }}</b></a>
+                    <p>{{ p[2]|safe }}</p>
+
+                    {% if p[4] == 'photo' %}
+                        <img src="{{ url_for('static', filename='uploads/' + p[3]) }}" alt="Post by {{ p[6] }}">
+                    {% else %}
+                        <video controls aria-label="Post Video">
+                            <source src="{{ url_for('static', filename='uploads/' + p[3]) }}">
+                        </video>
+                    {% endif %}
+
+                    <p>
+                        <i class="fa-regular fa-heart"></i> {{ p[7] }}
+                        &nbsp;
+                        <i class="fa-regular fa-comment"></i>{{ p[8] }}
+                    </p>
+
+                    <div class="actions">
+                        <a href="/like/{{ p[0] }}" aria-label="Like">
+                            <i class="fa-regular fa-heart"></i>
+                        </a>
+
+                        <a href="/chat/{{ p[1] }}" aria-label="DM">
+                            <i class="fa-regular fa-envelope"></i>
+                        </a>
+
+                        {% if p[1] == session['user_id'] %}
+                            <a href="/delete_post/{{ p[0] }}" aria-label="Delete">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+
+                    <form action="/comment/{{ p[0] }}" method="post" class="comment-box">
+                        <input type="text" name="comment" placeholder="Komentar..." required>
+                        <button type="submit" aria-label="Kirim">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </form>
+                    
+                    <div class="comments">
+                    {% for c in comments %}
+                        {% if c[1] == p[0] %}
+                            <p>
+                                <b>@{{ c[4] }}</b>: {{ c[3] }}
+                                {{ c[6] }}
+                                <a href="/like_comment/{{ c[0] }}" aria-label="Like comment">
+                                    <i class="fa-reguler fa-heart"></i>
+                                </a>
+                            </p>
+                        {% endif %}
+                    {% endfor %}
+                    </div>
+
+                </div>
+                {% endfor %}
+
+            </div>
+        </div>
 
     </div>
     
+<script src="https://kit.fontawesome.com/5fa5a7fb51.js" crossorigin="anonymous"></script>
 </body>
 </html>
