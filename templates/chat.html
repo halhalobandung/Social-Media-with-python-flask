@@ -53,13 +53,12 @@
             {% endfor %}
         </div>
 
-        <!-- TYPING INDICATOR (SATU SAJA) -->
         <div id="typing-indicator">
             sedang mengetik...
         </div>
 
         <div class="chat-form">
-            <input id="messageInput" placeholder="Ketik pesan...">
+            <input id="messageInput" placeholder="Ketik pesan..." autocomplete="off">
             <button id="sendBtn" aria-label="kirim">
                 <i class="fa-solid fa-paper-plane"></i>
             </button>
@@ -68,8 +67,8 @@
     </div>
 </div>
 
-<!-- AUTO SCROLL KE BAWAH -->
 <script>
+    // Scroll otomatis saat halaman dimuat
     const chatArea = document.getElementById("chatArea");
     chatArea.scrollTop = chatArea.scrollHeight;
 </script>

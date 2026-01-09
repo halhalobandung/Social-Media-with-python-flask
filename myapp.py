@@ -242,7 +242,8 @@ def profile(uid):
         user=user, followers=followers, following=following, posts=posts, uid=uid
     )
 
-@app.route('/chat/<int:uid>', methods=['GET', 'POST'])
+# --- BAGIAN INI YANG DIPERBAIKI ---
+@app.route('/chat/<int:uid>')
 def chat(uid):
     if "user_id" not in session:
         return redirect("/login")
@@ -250,13 +251,7 @@ def chat(uid):
     myid = session['user_id']
     cur = mysql.connection.cursor()
 
-    if request.method == 'POST':
-        msg = request.form['message']
-        cur.execute(
-            "INSERT INTO chat(sender_id, receiver_id, message) VALUES(%s, %s, %s)", 
-            (myid, uid, msg)
-        )
-        mysql.connection.commit()
+    # Logika POST dihapus, kita pakai Socket.IO sepenuhnya
 
     cur.execute("""
         SELECT sender_id, message 
