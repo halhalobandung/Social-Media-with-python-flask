@@ -1,10 +1,14 @@
 from flask import Flask, render_template, request, redirect, session
 from flask_mysqldb import MySQL
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
+from flask_socketio import SocketIO, emit, join_room
 import os
 
 app = Flask(__name__)
 app.secret_key = 'secret123'
+
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
@@ -15,6 +19,7 @@ mysql = MySQL(app)
 
 UPLOAD_FOLDER = 'static/uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.route("/edit-profile", methods=["GET", "POST"])
 def edit_profile():
@@ -29,24 +34,30 @@ def edit_profile():
         bio = request.form["bio"]
 
         photo = request.files["photo"]
-        filename = None
 
         if photo and photo.filename != "":
             filename = secure_filename(photo.filename)
             photo.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
             cur.execute("""
-                UPDATE users SET name=%s, bio%s, photo%s WHERE id=%s
+                UPDATE users 
+                SET name=%s, bio=%s, photo=%s 
+                WHERE id=%s
             """, (name, bio, filename, uid))
         else:
             cur.execute("""
-                UPDATE users SET name=%s, bio=%s WHERE id=%s
+                UPDATE users 
+                SET name=%s, bio=%s 
+                WHERE id=%s
             """, (name, bio, uid))
 
         mysql.connection.commit()
         return redirect(f"/profile/{uid}")
     
-    cur.execute("SELECT name, bio, photo FROM users WHERE id=%s", (uid,))
+    cur.execute(
+        "SELECT id, username, name, bio, photo FROM users WHERE id=%s", 
+        (uid,)
+    )
     user = cur.fetchone()
 
     return render_template("edit_profile.html", user=user)
@@ -214,7 +225,7 @@ def follow(user_id):
 def profile(uid):
     cur = mysql.connection.cursor()
 
-    cur.execute("SELECT username FROM users WHERE id=%s", (uid,))
+    cur.execute("SELECT id, username, name, bio, photo FROM users WHERE id=%s", (uid,))
     user = cur.fetchone()
 
     cur.execute("SELECT COUNT(*) FROM follow WHERE following_id=%s", (uid,))
@@ -282,7 +293,62 @@ def inbox():
 
     users = cur.fetchall()
     return render_template("inbox.html", users=users)
+
+@app.route('/search')
+def search():
+    if "user_id" not in session:
+        return redirect('/login')
     
+    keyword = request.args.get('q')
+    users = []
+
+    if keyword:
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            SELECT id, username, name, bio
+            FROM users
+            WHERE username LIKE %s or name LIKE %s
+        """, (f"%{keyword}", f"{keyword}"))
+        users = cur.fetchall()
+
+    return render_template('search.html', users=users, keyword=keyword)
+
+@socketio.on("join")
+def handle_join(data):
+    room = data["room"]
+    join_room(room)
+
+@socketio.on("send_message")
+def handle_message(data):
+    room = data["room"]
+    message = data["message"]
+    sender = data["sender"]
+    receiver = data["receiver"]
+
+    cur = mysql.connection.cursor()
+    cur.execute(
+        "INSERT INTO chat (sender_id, receiver_id, message) VALUES (%s, %s, %s)",
+        (sender, receiver, message)
+    )
+    mysql.connection.commit()
+
+    socketio.emit("receive_message", {
+        "message": message,
+        "sender": sender
+    }, room=room)
+
+
+@socketio.on('typing')
+def typing(data):
+    emit('show_typing', {
+        'sender_id': data['sender_id']
+    }, room=data['room'], include_self=False)
+
+@socketio.on('stop_typing')
+def stop_typing(data):
+    emit('hide_typing', {
+        'sender_id': data['sender_id']
+    }, room=data['room'], include_self=False)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app, debug=True)

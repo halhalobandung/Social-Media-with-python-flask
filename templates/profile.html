@@ -6,34 +6,77 @@
     <title>Profile</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body class="container">
+<body>
+    <div class="layout">
+        <div class="sidebar">
+            <h2>Mini X</h2>
 
-    <h2>@{{ user[0] }}</h2>
-    <p>{{ followers }} followers | {{ following }} following</p>
+            <form action="/search" method="get" class="search-box">
+                <input type="text" name="q" placeholder="Cari user...">
+            </form>
+            
+            <a href="/"><i class="fa-solid fa-house"> Home</i></a>
 
-    {% if user.photo %}
-        <img src="{{ url_for('static', filename='uploads/' + user.photo) }}" width="100" alt="">
-    {% endif %}
+            <a href="/profile/{{ session['user_id'] }}">
+                <i class="fa-solid fa-user"></i> Profile
+            </a>
 
-    <h2>@{{ user.name or user.username }}</h2>
-    <p> {{ user.bio }}</p>
+            <a href="/inbox">
+                <i class="fa-regular fa-envelope"></i> Inbox
+            </a>
 
-    {% if user.id == session[user_id] %}
-        <a href="/edit_profile.html"> Edit Profile</a>
-    {% endif %}
-
-    {% if uid != session['user_id'] %}
-        <a href="/follow/{{ uid }}"><i class="fa-solid fa-user-plus"></i> Follow</a>
-    {% endif %}
-
-    <hr>
-
-    {% for p in posts %}
-        <div class="post">
-            <p>{{ p[2] }}</p>
+            <a href="/logout">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </a>
         </div>
-    {% endfor %}
-    
+
+        <div class="main">
+            <div class="container">
+                <h2>@{{ user[1] }}</h2>
+                <p>{{ followers }} followers | {{ following }} following</p>
+
+                {% if user[4] %}
+                    <img src="{{ url_for('static', filename='uploads/' + user[4]) }}" width="100" alt="">
+                {% endif %}
+
+                <h3>@{{ user[2] or user[1] }}</h3>
+                <p> {{ user[3] }}</p>
+                
+                {% if user[0] == session['user_id'] %}
+                    <a href="{{ url_for('edit_profile') }}" class="btn"> 
+                        <i class="fa-solid fa-pen-to-square"></i> Edit Profile
+                    </a>
+                {% else %}
+                    <a href="/follow/{{ uid }}" class="btn"> 
+                        <i class="fa-solid fa-user-plus"></i> Follow
+                    </a>
+                {% endif %}
+
+                <hr>
+                
+                {% if posts %}
+                    {% for p in posts %}
+                        <div class="post">
+                            <p>{{ p[2] }}</p>
+
+                            {% if p[4] == 'photo' %}
+                                <img src="{{ url_for('static', filename='uploads/') + p[3] }}" alt="">
+                            {% else %}
+                                <video controls>
+                                    <source src="{{ url_for('static', filename='uploads/' + p[3]) }}">
+                                </video>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p>Belum ada postingan</p>
+                {% endif %}
+
+            </div>
+        </div>
+
+    </div>
+
 <script src="https://kit.fontawesome.com/5fa5a7fb51.js" crossorigin="anonymous"></script>
 </body>
 </html>

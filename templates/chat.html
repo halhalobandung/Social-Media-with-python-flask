@@ -4,57 +4,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat</title>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="layout">
-        <div class="sidebar">
-            <h2>Mini X</h2>
-            
-            <a href="/"><i class="fa-solid fa-house"> Home</i></a>
 
-            <a href="/profile/{{ session['user_id'] }}">
-                <i class="fa-solid fa-user"></i> Profile
-            </a>
+<div id="chatData"
+     data-myid="{{ session['user_id'] }}"
+     data-targetid="{{ uid }}">
+</div>
 
-            <a href="/inbox">
-                <i class="fa-regular fa-envelope"></i> Inbox
-            </a>
+<div class="layout">
+    <div class="sidebar">
+        <h2>Mini X</h2>
 
-            <a href="/logout">
-                <i class="fa-solid fa-right-from-bracket"></i> Logout
-            </a>
+        <form action="/search" method="get" class="search-box">
+            <input type="text" name="q" placeholder="Cari user...">
+        </form>
+
+        <a href="/"><i class="fa-solid fa-house"></i> Home</a>
+
+        <a href="/profile/{{ session['user_id'] }}">
+            <i class="fa-solid fa-user"></i> Profile
+        </a>
+
+        <a href="/inbox">
+            <i class="fa-regular fa-envelope"></i> Inbox
+        </a>
+
+        <a href="/logout">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </a>
+    </div>
+
+    <div class="main">
+
+        <div class="chat-header">
+            <b>@{{ user[0] }}</b>
         </div>
 
-        <div class="main">
-            <div class="chat-header">
-                <b>@{{ user[0] }}</b>
-            </div>
+        <div class="chat-area" id="chatArea">
+            {% for c in chats %}
+                {% if c[0] == session['user_id'] %}
+                    <div class="bubble me">{{ c[1] }}</div>
+                {% else %}
+                    <div class="bubble you">{{ c[1] }}</div>
+                {% endif %}
+            {% endfor %}
+        </div>
 
-            <div class="chat-area" id="chatArea">
-                {% for c in chats %}
-                    {% if c[0] == session['user_id'] %}
-                        <div class="bubble me">{{ c[1] }}</div>
-                    {% else %}
-                        <div class="bubble you">{{ c[1] }}</div>
-                    {% endif %}
-                {% endfor %}
-            </div>
+        <!-- TYPING INDICATOR (SATU SAJA) -->
+        <div id="typing-indicator">
+            sedang mengetik...
+        </div>
 
-            <form method="post">
-                <input name="message" placeholder="Ketik Pesan..." required>
-                <button type="submit" aria-label="Kirim"><i class="fa-solid fa-paper-plane"></i></button>
-            </form>
-
+        <div class="chat-form">
+            <input id="messageInput" placeholder="Ketik pesan...">
+            <button id="sendBtn" aria-label="kirim">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
         </div>
 
     </div>
+</div>
 
+<!-- AUTO SCROLL KE BAWAH -->
 <script>
     const chatArea = document.getElementById("chatArea");
-    chatArea.scrollTop = chatArea.scrollHeight
+    chatArea.scrollTop = chatArea.scrollHeight;
 </script>
 
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
 <script src="https://kit.fontawesome.com/5fa5a7fb51.js" crossorigin="anonymous"></script>
+
+<script src="{{ url_for('static', filename='chat.js') }}"></script>
+
 </body>
 </html>

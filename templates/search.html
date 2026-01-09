@@ -1,19 +1,15 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inbox</title>
+    <title>Search</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="layout">
         <div class="sidebar">
-            <h2>Mini X</h2>
-
-            <form action="/search" method="get" class="search-box">
-                <input type="text" name="q" placeholder="Cari user...">
-            </form>
+            <h2>Mini x</h2>
 
             <a href="/"><i class="fa-solid fa-house"> Home</i></a>
 
@@ -32,26 +28,26 @@
 
         <div class="main">
             <div class="container">
-                <h2>Inbox</h2>
+                <h2>Hasil pencarian "{{ keyword }}"</h2>
 
-            {% if users %}
-                {% for u in users %}
-                    <a href="/chat/{{ u[0] }}">
-                        <div class="inbox-item">
-                            <b>@{{ u[1] }}</b>
-                            <p>Klik untuk membuka chat</p>
+                {% if users %}
+                    {% for u in users %}
+                        <div class="post">
+                            <b>@{{ u[1] }}</b><br>
+                            {{ u[2] or '' }}<br><br>
+
+                            <a href="/profile/{{ u[0] }}">Profile</a>
+                            <a href="/chat/{{ u[0] }}">Chat</a>
                         </div>
-                    </a>
-                {% endfor %}
-            {% else %}
-                    <p>Belum ada chat.</p>
-            {% endif %}
-
+                    {% endfor %}
+                {% else %}
+                    <p>User tidak ditemukan.</p>
+                {% endif %}
             </div>
         </div>
 
     </div>
-
-<script src="https://kit.fontawesome.com/5fa5a7fb51.js" crossorigin="anonymous"></script>
+    
+<script src="https://kit.fontawesome.com/5fa5a7fb51.js" crossorigin="anonymous"></script>   
 </body>
 </html>

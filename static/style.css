@@ -247,3 +247,74 @@ a {
 .inbox-item:hover {
     background: #f0f0f0;
 }
+
+.search-box {
+    margin-bottom: 15px;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    outline: none;
+}
+
+.search-box input:focus {
+    border-color: #1da1f2;
+}
+
+.post-info {
+    margin-top: 8px;
+    color: #555;
+
+}
+
+#typing-indicator {
+    font-size: 12px;
+    color: #666;
+    padding: 6px 15px;
+    font-style: italic;
+    display: none;
+}
+
+.bubble {
+    animation: fadeIn 0.15s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.chat-area::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-area::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+
+.chat-area::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+}
+
+.bubble.me {
+    background: #1da1f2;
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+}
+
+.bubble.you {
+    background: #eee;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+}
